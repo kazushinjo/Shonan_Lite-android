@@ -19,8 +19,9 @@ usage() {
   cat <<EOF
 使い方: $(basename "$0") [--release] [--build-only] [--clean]
 
-  --release     assembleRelease でビルドする(署名設定が無いため未署名APKになり、
-                自動インストールはできない。動作確認・サイズ確認用)
+  --release     assembleRelease でビルドする。android/keystore/keystore.properties が
+                あれば署名して自動インストールも行う。無ければ未署名APKになり
+                自動インストールはできない(動作確認・サイズ確認用)
   --build-only  ビルドのみ行い、adb installは実行しない
   --clean       ビルド前に ./gradlew clean を実行する
 EOF
@@ -62,10 +63,15 @@ TASK="assembleDebug"
 APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
 if [ "$BUILD_TYPE" = "release" ]; then
   TASK="assembleRelease"
-  APK_PATH="app/build/outputs/apk/release/app-release-unsigned.apk"
+  APK_PATH="app/build/outputs/apk/release/app-release.apk"
 fi
 
 ./gradlew "$TASK"
+
+if [ "$BUILD_TYPE" = "release" ] && [ ! -f "$APK_PATH" ]; then
+  # keystore/keystore.properties が無い環境では未署名APKになる
+  APK_PATH="app/build/outputs/apk/release/app-release-unsigned.apk"
+fi
 
 if [ ! -f "$APK_PATH" ]; then
   echo "エラー: APKが生成されませんでした ($ANDROID_DIR/$APK_PATH)。" >&2
@@ -74,8 +80,8 @@ fi
 
 echo "ビルド完了: $ANDROID_DIR/$APK_PATH"
 
-if [ "$BUILD_TYPE" = "release" ]; then
-  echo "release APKは未署名のため自動インストールは行いません。"
+if [ "$BUILD_TYPE" = "release" ] && [[ "$APK_PATH" == *unsigned* ]]; then
+  echo "release APKは未署名のため自動インストールは行いません(keystore/keystore.propertiesが無いため)。"
   echo "実機で使うにはこのAPKに署名するか、--releaseを付けずにdebugビルドを使ってください。"
   exit 0
 fi

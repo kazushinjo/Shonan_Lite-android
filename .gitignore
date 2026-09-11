@@ -4,3 +4,4 @@ android/**/.cxx/
 android/**/build/
 *.iml
 android/local.properties
+android/keystore/
