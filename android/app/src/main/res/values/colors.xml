@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- QO-100(静止軌道上のアマチュア無線トランスポンダ衛星)モチーフの起動アイコン背景色。 -->
+    <color name="ic_launcher_background">#000103</color>
+</resources>
