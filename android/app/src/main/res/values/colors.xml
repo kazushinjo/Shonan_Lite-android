@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- QO-100(静止軌道上のアマチュア無線トランスポンダ衛星)モチーフの起動アイコン背景色。 -->
-    <color name="ic_launcher_background">#000103</color>
+    <!-- 江の島(片瀬海岸から望む昼間の江の島・シーキャンドル・弁天橋)モチーフの起動アイコン背景色。
+         実体は drawable/ic_launcher_background.xml のグラデーションで、この色はフォールバック用。 -->
+    <color name="ic_launcher_background">#6FB3DD</color>
 </resources>
