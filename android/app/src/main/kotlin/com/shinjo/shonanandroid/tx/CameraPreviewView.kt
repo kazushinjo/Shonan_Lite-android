@@ -5,6 +5,7 @@ import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.viewinterop.AndroidView
 
 /** CameraXの[PreviewView]をホストする -- iOS版`CameraPreviewView.swift`
@@ -14,7 +15,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 @Composable
 fun CameraPreviewView(preview: Preview, modifier: Modifier = Modifier) {
     AndroidView(
-        modifier = modifier,
+        // ★カメラの映像(4:3)を16:9の枠いっぱいに収める既定のFILL_CENTERでは、映像を拡大して
+        // 上下(または左右)を切り落とす。その切り落とし部分が枠でクリップされずに外へ描画され、
+        // 周囲の文字やボタンに重なることがある(電話版Shonan_Lite-doroidPhoneの実機で確認)。
+        // 枠の範囲だけに描画するようクリップする(TextureViewモードなのでComposeのクリップが効く)。
+        modifier = modifier.clipToBounds(),
         factory = { context ->
             PreviewView(context).also { previewView ->
                 // SurfaceViewはComposeのテキストより前面に残ることがあるため、
