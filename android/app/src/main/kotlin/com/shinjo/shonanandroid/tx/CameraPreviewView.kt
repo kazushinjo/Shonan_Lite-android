@@ -17,7 +17,7 @@ fun CameraPreviewView(preview: Preview, modifier: Modifier = Modifier) {
     AndroidView(
         // ★カメラの映像(4:3)を16:9の枠いっぱいに収める既定のFILL_CENTERでは、映像を拡大して
         // 上下(または左右)を切り落とす。その切り落とし部分が枠でクリップされずに外へ描画され、
-        // 周囲の文字やボタンに重なることがある(電話版Shonan_Lite-doroidPhoneの実機で確認)。
+        // 周囲の文字やボタンに重なることがある(電話版Shonan_Lite-androidPhoneの実機で確認)。
         // 枠の範囲だけに描画するようクリップする(TextureViewモードなのでComposeのクリップが効く)。
         modifier = modifier.clipToBounds(),
         factory = { context ->
