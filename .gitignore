@@ -5,3 +5,6 @@ android/**/build/
 *.iml
 android/local.properties
 android/keystore/
+
+# KiCadの画面の状態(レイヤーの表示・拡大率など)。設計データではないので管理しない
+*.kicad_prl
