@@ -15,6 +15,7 @@ import com.shinjo.shonanandroid.dvbs2.PlutoTuner
 import com.shinjo.shonanandroid.rx.RxController
 import com.shinjo.shonanandroid.tx.TxController
 import com.shinjo.shonanandroid.tx.TxNetworkStats
+import com.shinjo.shonanandroid.net.Esp32PttClient
 import com.shinjo.shonanandroid.net.NetworkBinder
 import com.shinjo.shonanandroid.net.PlutoSettingsWriter
 import com.shinjo.shonanandroid.net.PlutoUdpTsController
@@ -34,6 +35,9 @@ data class RssiMeasurement(val frequencyHz: Long, val rssiDb: Double)
 
 /** libiio IIODの既定TCPポート。 */
 private const val IIOD_PORT = 30431
+
+/** アプリ起動からPA_Power/PTTコントローラの12V電源をONにするまでの待ち(Pi5版と同じ5秒)。 */
+private const val PTT_CONTROLLER_POWER_ON_DELAY_MS = 5_000L
 
 /** RSSI測定でRSSI変動をピークと認めるしきい値(dB)。Shonan_Lite-winと同じ値。 */
 private const val RSSI_PEAK_THRESHOLD_DB = 3.0
@@ -162,6 +166,22 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     init {
         txController.onError = { txError = it }
         rxController.onError = { rxError = it }
+        // アプリ起動から5秒後に、PA_Power/PTTコントローラ経由で12V電源(Pluto含む)をONにする(Pi5版と同じ)。
+        viewModelScope.launch {
+            delay(PTT_CONTROLLER_POWER_ON_DELAY_MS)
+            notifyPttController("POWER on") { Esp32PttClient.setChannel(it, Esp32PttClient.CHANNEL_POWER, on = true) }
+        }
+    }
+
+    /**
+     * PA_Power/PTTコントローラ(ESP32+W5500)へ通知する。設定で使用しない場合は何もしない。
+     * 未接続・応答なしでも送受信の動作は妨げず、結果はログにだけ残す。
+     */
+    private suspend fun notifyPttController(label: String, call: (String) -> Result<String>) {
+        val host = settings.activePttControllerHost
+        if (host.isEmpty()) return
+        val result = withContext(Dispatchers.IO) { call(host) }
+        FileLogger.log("PTT_CTRL", "$label host=$host result=${result.exceptionOrNull() ?: result.getOrNull()}")
     }
 
     /**
@@ -180,6 +200,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 if (!preparePlutoTx()) return@launch
                 if (!tunePluto(isTx = true)) return@launch
+                // PA_Power/PTTコントローラへ送信開始を通知する(ESP32側で設定した遅延の後にPTT ON)。
+                // 応答が無くても送信は止めない(Pi5版と同じ)。
+                notifyPttController("TX on") { Esp32PttClient.notifyTx(it, on = true) }
                 txController.start(txSettings ?: settings)
                 isTransmitting = true
             } finally {
@@ -191,6 +214,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun stopTX() {
         txController.stop()
         isTransmitting = false
+        // 送信を止めてからPA_Power/PTTコントローラへ送信終了を通知する(PTTは即時OFF)。
+        viewModelScope.launch { notifyPttController("TX off") { Esp32PttClient.notifyTx(it, on = false) } }
     }
 
     fun startRX() {
@@ -478,7 +503,30 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         dvbs2TestRunner.cancelCameraAudioDiag()
     }
 
+    /**
+     * ホーム画面の「終了」: 送信を止め、PA_Power/PTTコントローラのPTTと12V電源(Pluto含む)を
+     * OFFにしてからプロセスを終了する(Pi5版のアプリ終了と同じ順序)。ESP32が応答しなくても終了する。
+     */
+    fun quitApp() {
+        if (isTransmitting) txController.stop()
+        viewModelScope.launch {
+            notifyPttController("TX off") { Esp32PttClient.notifyTx(it, on = false) }
+            notifyPttController("POWER off") { Esp32PttClient.setChannel(it, Esp32PttClient.CHANNEL_POWER, on = false) }
+            android.os.Process.killProcess(android.os.Process.myPid())
+        }
+    }
+
     override fun onCleared() {
+        // 「終了」ボタン以外でアプリが閉じられた時: PTTを確実にOFFにしてから12V電源(Pluto含む)をOFFにする(Pi5版と同じ順序)。
+        // viewModelScopeはここで取り消されるため、別スレッドで送る。
+        val host = settings.activePttControllerHost
+        if (host.isNotEmpty()) {
+            Thread {
+                Esp32PttClient.notifyTx(host, on = false)
+                val result = Esp32PttClient.setChannel(host, Esp32PttClient.CHANNEL_POWER, on = false)
+                FileLogger.log("PTT_CTRL", "POWER off host=$host result=${result.exceptionOrNull() ?: result.getOrNull()}")
+            }.start()
+        }
         stopRssi()
         dvbs2TestRunner.destroy()
         super.onCleared()

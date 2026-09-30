@@ -211,6 +211,7 @@ fun ManualScreen(@Suppress("UNUSED_PARAMETER") viewModel: AppViewModel, navContr
                     ManualBullet("オンデバイス復調をONにすると、Pluto 1台でRFのループバック試験ができます(画像を送信しながら同時に受信します)。")
                     ManualBullet("外部アッテネータなしでONにするとTX出力がPlutoのRX入力に直接回り込み、Pluto本体を破損するおそれがあるため、有効化時に必ず警告ダイアログが表示されます。")
                     ManualBullet("オンデバイス復調ONの状態では、ロールオフはPlutoのオンボード変調に合わせて0.35固定(編集不可)で復調されます。")
+                    ManualBullet("「PA_Power/PTTコントローラ (ESP32)」で「ESP32 W5500を使用する」をONにしてESP32のIPアドレスを入力すると、送信開始/終了に連動してPTTを、アプリ起動の5秒後とアプリ終了時に12V電源(Pluto含む)を自動でON/OFFします(ESP32が応答しなくても送受信はそのまま行います)。")
                 }
                 ManualSection("15. 機器試験(Diagnostic)画面", sectionModifier("diagnostic", sectionOffsets, scrollState)) {
                     Image(painter = painterResource(R.drawable.manual_diagnostic), contentDescription = "機器試験画面", modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.Fit)
@@ -382,6 +383,7 @@ private fun EnglishManualScreen(navController: NavHostController) {
                     ManualBullet("Enabling on-device demodulation lets you run an RF loopback test with a single Pluto: you transmit an image while simultaneously receiving that same image.")
                     ManualBullet("Enabling it without an external attenuator can let TX output feed straight back into Pluto's RX input and damage the Pluto, so a warning dialog is always shown before it is enabled.")
                     ManualBullet("While on-device demodulation is on, roll-off is fixed at 0.35 (not editable) to match Pluto's onboard modulator.")
+                    ManualBullet("Turn on \"Use ESP32 W5500\" under \"PA_Power/PTT Controller (ESP32)\" and enter the ESP32's IP address to switch PTT with TX start/stop, and the 12 V power (including the Pluto) 5 seconds after app start and at app exit (TX/RX still work if the ESP32 does not respond).")
                 }
                 ManualSection("15. Diagnostic", sectionModifier("diagnostic", sectionOffsets, scrollState)) {
                     Image(painter = painterResource(R.drawable.manual_diagnostic), contentDescription = "Diagnostic screen", modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.Fit)
