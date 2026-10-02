@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.shinjo.shonanandroid.AppViewModel
 import com.shinjo.shonanandroid.rx.RxVideoView
+import kotlin.math.roundToInt
 
 private val CardBackground = Color(0xFF191D1F)
 private val DividerColor = Color(0xFF303538)
@@ -176,6 +177,7 @@ fun RxScreen(viewModel: AppViewModel, navController: NavHostController) {
                         colors = SliderDefaults.colors(thumbColor = Color(0xFFDDDDDD), activeTrackColor = StartColor),
                         modifier = Modifier.weight(1f),
                     )
+                    Text("${(settings.rxVolume * 100).roundToInt()}%", color = Color.White, fontSize = 12.sp, modifier = Modifier.width(40.dp))
                 }
 
                 Row(

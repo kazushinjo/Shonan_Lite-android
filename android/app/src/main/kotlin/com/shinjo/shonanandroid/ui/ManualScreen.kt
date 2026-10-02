@@ -144,6 +144,7 @@ fun ManualScreen(@Suppress("UNUSED_PARAMETER") viewModel: AppViewModel, navContr
                     ManualBullet("送信を停止するとPlutoへのUDP送信も停止します。実運用では送信中に受信を同時開始しません。")
                     ManualBullet("送信画面の音声設定で、マイク音声を送信するか選択できます。")
                     ManualBullet("画面をタップすると操作パネルが表示され、マイク入力レベルをバーでリアルタイム表示します。")
+                    ManualBullet("送信画面の「送信音量」スライダーでマイク音声の大きさを0〜100%で調整できます(初期値80%で入力そのまま、100%で2倍、送信中も即時反映)。")
                 }
                 ManualSection("4. 受信(Rx)画面", sectionModifier("rx", sectionOffsets, scrollState)) {
                     Image(painter = painterResource(R.drawable.manual_rx), contentDescription = "受信画面", modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.Fit)
@@ -153,7 +154,7 @@ fun ManualScreen(@Suppress("UNUSED_PARAMETER") viewModel: AppViewModel, navContr
                     ManualBullet("同期ロック、推定ロスパケット数、送信UDPパケット数を画面下部に表示します。")
                     ManualBullet("ロック表示は復調器の同期状態です。ロック後も映像が出ない場合は、受信を停止して再開始してください。")
                     ManualBullet("相手側の音声入力レベルをバーでリアルタイム表示します。")
-                    ManualBullet("音量スライダーでタブレットの音声出力音量を調整できます(設定は次回起動時も保持)。")
+                    ManualBullet("音量スライダーでタブレットの音声出力音量を調整できます(右に%を表示)。")
                 }
                 ManualSection("5. 周波数(Frequency)画面", sectionModifier("frequency", sectionOffsets, scrollState)) {
                     Image(painter = painterResource(R.drawable.manual_frequency), contentDescription = "周波数画面", modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.Fit)

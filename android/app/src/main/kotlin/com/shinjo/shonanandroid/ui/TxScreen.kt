@@ -18,6 +18,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +38,7 @@ import com.shinjo.shonanandroid.tx.ColorBarPreview
 import com.shinjo.shonanandroid.tx.OverlayPreview
 import com.shinjo.shonanandroid.tx.OverlaySpec
 import com.shinjo.shonanandroid.tx.PhotoPreview
+import kotlin.math.roundToInt
 
 private val CardBackground = Color(0xFF191D1F)
 private val DividerColor = Color(0xFF303538)
@@ -165,6 +168,21 @@ fun TxScreen(viewModel: AppViewModel, navController: NavHostController) {
                     progress = { stats.audioLevel },
                     modifier = Modifier.fillMaxWidth().height(8.dp),
                 )
+
+                // 送信音量(Pi5版はロータリーエンコーダ、iPad/Android版はスライダー)。送信中も即時反映。
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(settings.t("送信音量", "TX Volume"), color = CaptionColor, fontSize = 12.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Slider(
+                        value = settings.txAudioVolume.toFloat(),
+                        onValueChange = { value -> viewModel.setTxAudioVolume(value.roundToInt()) },
+                        valueRange = 0f..100f,
+                        enabled = settings.transmitAudio,
+                        colors = SliderDefaults.colors(thumbColor = Color(0xFFDDDDDD), activeTrackColor = Color(0xFF1677FF)),
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text("${settings.txAudioVolume}%", color = Color.White, fontSize = 12.sp, modifier = Modifier.width(40.dp))
+                }
 
                 viewModel.txError?.let {
                     Text(
