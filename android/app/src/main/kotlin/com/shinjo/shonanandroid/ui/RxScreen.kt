@@ -120,7 +120,7 @@ fun RxScreen(viewModel: AppViewModel, navController: NavHostController) {
 
                     StatusFieldRow(
                         settings.t("状態", "State") to if (rx.isLocked) settings.t("接続中", "Connected") else settings.t("切断中", "Disconnected"),
-                        settings.t("パケット数", "Packets") to "${rx.continuityTracker.totalPackets}",
+                        settings.t("受信パケット数", "Packets received") to "${rx.continuityTracker.totalPackets}",
                     )
                     StatusFieldRow(
                         settings.t("エラー", "Errors") to "${rx.continuityTracker.estimatedLostPackets}",
