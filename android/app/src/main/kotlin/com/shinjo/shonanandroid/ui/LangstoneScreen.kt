@@ -149,10 +149,7 @@ fun LangstoneScreen(viewModel: AppViewModel, navController: NavHostController) {
                 PopupRow(controller)
                 FunctionButtons(controller, settings::t, onExit = { exit() }, onQuit = { showQuitConfirmation = true })
             }
-            SidePanel(
-                controller, settings::t, isExiting, Modifier.width(240.dp).fillMaxHeight(),
-                onExit = { exit() }, onQuit = { showQuitConfirmation = true },
-            )
+            SidePanel(controller, settings::t, isExiting, Modifier.width(240.dp).fillMaxHeight()) { exit() }
         }
 
         when (val st = controller.status) {
@@ -337,7 +334,7 @@ private fun functionButtonSpec(c: LangstoneController, i: Int, t: (String, Strin
             2 -> Triple("NEXT", false, null)
             3 -> Triple("PREV", false, null)
             4 -> Triple("RESTART", false, btnWarn)
-            5 -> Triple(t("プログラム終了", "Quit"), false, btnWarn)
+            5 -> Triple(t("プログラム\n終了", "Quit"), false, btnWarn)
             6 -> Triple(t("ホームへ", "Home"), false, btnWarn)
             else -> Triple("", false, null)
         }
@@ -361,12 +358,11 @@ private fun functionButtonSpec(c: LangstoneController, i: Int, t: (String, Strin
     }
 }
 
-// MARK: - 右側(ホームへ・プログラム終了・針式メーター・KEY・ダイヤル・桁移動・LOCK)
+// MARK: - 右側(ホームへ・針式メーター・KEY・ダイヤル・桁移動・LOCK)
 
 @Composable
 private fun SidePanel(
-    c: LangstoneController, t: (String, String) -> String, isExiting: Boolean, modifier: Modifier,
-    onExit: () -> Unit, onQuit: () -> Unit,
+    c: LangstoneController, t: (String, String) -> String, isExiting: Boolean, modifier: Modifier, onExit: () -> Unit,
 ) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Button(
@@ -376,13 +372,6 @@ private fun SidePanel(
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E6FE0), contentColor = Color.White),
         ) { Text(t("ホームへ戻る", "Back to Home"), fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
-        Button(
-            onClick = onQuit,
-            enabled = !isExiting,
-            modifier = Modifier.fillMaxWidth().height(44.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF05A45), contentColor = Color.White),
-        ) { Text(t("プログラム終了", "Quit"), fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
 
         Spacer(Modifier.weight(1f))
         AnalogMeterView(c.display, Modifier.width(230.dp).height(120.dp))
@@ -451,7 +440,13 @@ private fun LsButton(
             .clickable(enabled = enabled && !empty, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Text(title, color = textColor, fontSize = 19.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        // 改行を含む見出し(「プログラム\n終了」)は2行にして、ボタンの高さを変えずに収める。
+        if ('\n' in title) {
+            Text(title, color = textColor, fontSize = 15.sp, lineHeight = 17.sp, fontWeight = FontWeight.SemiBold,
+                maxLines = 2, textAlign = TextAlign.Center)
+        } else {
+            Text(title, color = textColor, fontSize = 19.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        }
     }
 }
 
