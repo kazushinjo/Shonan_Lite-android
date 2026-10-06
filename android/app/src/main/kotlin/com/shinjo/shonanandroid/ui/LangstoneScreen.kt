@@ -107,6 +107,7 @@ fun LangstoneScreen(viewModel: AppViewModel, navController: NavHostController) {
     val context = LocalContext.current
     val controller = remember { LangstoneController(context.applicationContext) }
     var isExiting by remember { mutableStateOf(false) }
+    var showQuitConfirmation by remember { mutableStateOf(false) }
 
     fun startController() {
         val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
@@ -124,6 +125,15 @@ fun LangstoneScreen(viewModel: AppViewModel, navController: NavHostController) {
         controller.shutdown { navController.popBackStack("home", false) }
     }
 
+    // プログラム終了: Plutoを受信状態に戻して切断してから、ホーム画面の「プログラム終了」と同じ終了処理
+    // (PTT・12V電源OFF→プロセス終了)を行う。
+    fun quit() {
+        if (isExiting) return
+        isExiting = true
+        showQuitConfirmation = false
+        controller.shutdown { viewModel.quitApp() }
+    }
+
     LaunchedEffect(Unit) { startController() }
     DisposableEffect(Unit) { onDispose { controller.release() } }
     BackHandler { exit() }
@@ -139,7 +149,10 @@ fun LangstoneScreen(viewModel: AppViewModel, navController: NavHostController) {
                 PopupRow(controller)
                 FunctionButtons(controller, settings::t) { exit() }
             }
-            SidePanel(controller, settings::t, isExiting, Modifier.width(240.dp).fillMaxHeight()) { exit() }
+            SidePanel(
+                controller, settings::t, isExiting, Modifier.width(240.dp).fillMaxHeight(),
+                onExit = { exit() }, onQuit = { showQuitConfirmation = true },
+            )
         }
 
         when (val st = controller.status) {
@@ -163,6 +176,10 @@ fun LangstoneScreen(viewModel: AppViewModel, navController: NavHostController) {
             }
             else -> Unit
         }
+    }
+
+    if (showQuitConfirmation) {
+        QuitConfirmationDialog(settings::t, onQuit = { quit() }, onDismiss = { showQuitConfirmation = false })
     }
 }
 
@@ -339,11 +356,12 @@ private fun functionButtonSpec(c: LangstoneController, i: Int, t: (String, Strin
     }
 }
 
-// MARK: - 右側(ホームへ・針式メーター・KEY・ダイヤル・桁移動・LOCK)
+// MARK: - 右側(ホームへ・プログラム終了・針式メーター・KEY・ダイヤル・桁移動・LOCK)
 
 @Composable
 private fun SidePanel(
-    c: LangstoneController, t: (String, String) -> String, isExiting: Boolean, modifier: Modifier, onExit: () -> Unit,
+    c: LangstoneController, t: (String, String) -> String, isExiting: Boolean, modifier: Modifier,
+    onExit: () -> Unit, onQuit: () -> Unit,
 ) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Button(
@@ -353,6 +371,13 @@ private fun SidePanel(
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E6FE0), contentColor = Color.White),
         ) { Text(t("ホームへ戻る", "Back to Home"), fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
+        Button(
+            onClick = onQuit,
+            enabled = !isExiting,
+            modifier = Modifier.fillMaxWidth().height(44.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF05A45), contentColor = Color.White),
+        ) { Text(t("プログラム終了", "Quit"), fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
 
         Spacer(Modifier.weight(1f))
         AnalogMeterView(c.display, Modifier.width(230.dp).height(120.dp))

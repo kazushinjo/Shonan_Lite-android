@@ -300,38 +300,44 @@ fun HomeScreen(viewModel: AppViewModel, navController: NavHostController) {
     }
 
     if (showQuitConfirmation) {
-        androidx.compose.ui.window.Dialog(onDismissRequest = { showQuitConfirmation = false }) {
-            Column(
-                modifier = Modifier
-                    .background(Color(0xFF101416), androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
-                    .padding(30.dp, 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
-            ) {
-                PowerIcon(color = Color(0xFFF05A45), modifier = Modifier.size(56.dp))
-                Text(
-                    settings.t("プログラムを終了します。\nよろしいですか？", "The program will quit.\nAre you sure?"),
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                )
-                androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)) {
-                    androidx.compose.material3.Button(
-                        onClick = { viewModel.quitApp() },
-                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color(0xFFF05A45)),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
-                    ) {
-                        Text(settings.t("終了する", "Quit"), fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                    }
-                    androidx.compose.material3.OutlinedButton(
-                        onClick = { showQuitConfirmation = false },
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF3B5159)),
-                        colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
-                    ) {
-                        Text(settings.t("キャンセル", "Cancel"), fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                    }
+        QuitConfirmationDialog(settings::t, onQuit = { viewModel.quitApp() }, onDismiss = { showQuitConfirmation = false })
+    }
+}
+
+/** 「プログラム終了」の確認ダイアログ。ホーム画面とLangstone画面で共用する。 */
+@Composable
+internal fun QuitConfirmationDialog(t: (String, String) -> String, onQuit: () -> Unit, onDismiss: () -> Unit) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .background(Color(0xFF101416), androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                .padding(30.dp, 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
+        ) {
+            PowerIcon(color = Color(0xFFF05A45), modifier = Modifier.size(56.dp))
+            Text(
+                t("プログラムを終了します。\nよろしいですか？", "The program will quit.\nAre you sure?"),
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+            androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)) {
+                androidx.compose.material3.Button(
+                    onClick = onQuit,
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color(0xFFF05A45)),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                ) {
+                    Text(t("終了する", "Quit"), fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                }
+                androidx.compose.material3.OutlinedButton(
+                    onClick = onDismiss,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF3B5159)),
+                    colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                ) {
+                    Text(t("キャンセル", "Cancel"), fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                 }
             }
         }
