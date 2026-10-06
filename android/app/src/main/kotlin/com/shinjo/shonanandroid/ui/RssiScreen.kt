@@ -137,7 +137,7 @@ fun RssiScreen(viewModel: AppViewModel, navController: NavHostController) {
                         .padding(10.dp, 8.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Text(settings.t("検索条件", "Search Conditions"), color = TitleCyan, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(settings.t("測定条件", "Measurement Conditions"), color = TitleCyan, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     val centerKhz = (settings.effectiveLoHz / 1000.0).roundToLong()
                     Text(
                         settings.t("中心周波数: $centerKhz kHz", "Center frequency: $centerKhz kHz"),
@@ -201,7 +201,7 @@ fun RssiScreen(viewModel: AppViewModel, navController: NavHostController) {
                         modifier = Modifier.fillMaxWidth().height(44.dp),
                     ) {
                         Text(
-                            if (viewModel.rssiIsScanning) settings.t("検索停止", "Stop Search") else settings.t("検索開始", "Start Search"),
+                            if (viewModel.rssiIsScanning) settings.t("測定停止", "Stop Measurement") else settings.t("測定開始", "Start Measurement"),
                             fontSize = 15.sp, fontWeight = FontWeight.Bold,
                         )
                     }
@@ -217,7 +217,7 @@ fun RssiScreen(viewModel: AppViewModel, navController: NavHostController) {
                         .padding(10.dp, 8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Text(settings.t("検索結果", "Search Result"), color = TitleCyan, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(settings.t("測定結果", "Measurement Result"), color = TitleCyan, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     RssiGraph(
                         settings = settings,
                         startHz = viewModel.rssiSweepStartHz,
@@ -240,7 +240,7 @@ fun RssiScreen(viewModel: AppViewModel, navController: NavHostController) {
                     // 検索方法: 連続(「検索停止」まで繰り返す)/ 1回(範囲の終わりで自動停止)。
                     // 検索中に切り替えた場合は、実行中の周回が終わった時点から反映される。
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(settings.t("検索方法", "Search Mode"), color = TextColor, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(settings.t("測定方法", "Measurement Mode"), color = TextColor, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.weight(1f))
                         PresetButton(settings.t("連続", "Repeat"), selected = settings.rssiRepeatScan, modifier = Modifier.widthIn(min = 72.dp)) {
                             viewModel.setRssiRepeatScan(true)
@@ -274,7 +274,7 @@ fun RssiScreen(viewModel: AppViewModel, navController: NavHostController) {
             }
 
             Text(
-                viewModel.rssiStatus.ifEmpty { settings.t("検索待機中", "Search idle") },
+                viewModel.rssiStatus.ifEmpty { settings.t("測定待機中", "Measurement idle") },
                 color = StatusColor, fontSize = 15.sp, fontWeight = FontWeight.Bold,
             )
         }
@@ -360,7 +360,7 @@ private fun RssiGraph(
     points: List<RssiMeasurement>,
     modifier: Modifier = Modifier,
 ) {
-    val emptyText = settings.t("検索開始でRSSIを表示します", "Press Start to show RSSI")
+    val emptyText = settings.t("測定開始でRSSIを表示します", "Press Start Measurement to show RSSI")
     Canvas(
         modifier = modifier
             .background(ChartBackground, RoundedCornerShape(8.dp))

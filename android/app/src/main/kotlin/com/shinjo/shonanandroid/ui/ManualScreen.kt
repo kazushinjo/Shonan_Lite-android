@@ -164,13 +164,13 @@ fun ManualScreen(@Suppress("UNUSED_PARAMETER") viewModel: AppViewModel, navContr
                     ManualBullet("「10GHz」を押すと「LNBを使用しますか?」と確認します。「はい」を選ぶと表示周波数は10236.5 MHz、Plutoの受信周波数はLNB局部発振9750 MHzを引いた486.5 MHzになります(受信画面・RSSI測定も同じ)。LNB使用中は受信専用で、送信・機器試験はできません。")
                 }
                 ManualSection("6. RSSI測定画面", sectionModifier("find", sectionOffsets, scrollState)) {
-                    ManualParagraph("周波数画面で設定した運用周波数を中心に、「周波数±5/10/20MHz」で範囲を選び(画面を開くと±10MHz)、ステップ(既定200 kHz)を入力して「検索開始」を押すと、PlutoのRSSIを範囲の端から順に測定します。「検索停止」で即座に止まります。")
+                    ManualParagraph("周波数画面で設定した運用周波数を中心に、「周波数±5/10/20MHz」で範囲を選び(画面を開くと±10MHz)、ステップ(既定200 kHz)を入力して「測定開始」を押すと、PlutoのRSSIを範囲の端から順に測定します。「測定停止」で即座に止まります。")
                     Image(painter = painterResource(R.drawable.manual_find), contentDescription = "RSSI測定画面", modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.Fit)
                     ManualBullet("グラフは値が小さいほど上に描きます(AD9361のRSSIは値が小さいほど信号が強い)。白い破線が中心周波数、黄色の点がその周回で最も強い点です。")
                     ManualBullet("1周ごとにRSSIの変動幅が3 dB以上あれば「最も強い周波数」を更新します。明確なピークが無い周回では前回の結果を残します。")
-                    ManualBullet("検索方法は「連続」(「検索停止」まで繰り返す)と「1回」(範囲の終わりで自動停止)から選べます。")
-                    ManualBullet("RXゲイン(AGC/手動)はRXゲイン画面と同じ設定で、検索中も変更できます。変更するとその周回を最初からやり直します。")
-                    ManualBullet("オンデバイス復調がONのときは、検索開始と同時に送信を開始し、1秒待ってから測定します。検索停止で送信も止まります。受信中は開始できません。他の画面へ移ると検索は止まります。")
+                    ManualBullet("測定方法は「連続」(「測定停止」まで繰り返す)と「1回」(範囲の終わりで自動停止)から選べます。")
+                    ManualBullet("RXゲイン(AGC/手動)はRXゲイン画面と同じ設定で、測定中も変更できます。変更するとその周回を最初からやり直します。")
+                    ManualBullet("オンデバイス復調がONのときは、測定開始と同時に送信を開始し、1秒待ってから測定します。測定停止で送信も止まります。受信中は開始できません。他の画面へ移ると測定は止まります。")
                 }
                 ManualSection("7. シンボルレート(Symbol Rate)画面", sectionModifier("symbolrate", sectionOffsets, scrollState)) {
                     Image(painter = painterResource(R.drawable.manual_symbolrate), contentDescription = "シンボルレート画面", modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.Fit)
@@ -338,11 +338,11 @@ private fun EnglishManualScreen(navController: NavHostController) {
                     ManualBullet("Pressing 10 GHz asks whether to use an LNB. Choosing Yes sets the displayed frequency to 10236.5 MHz and the Pluto receive frequency to 486.5 MHz (the LNB local oscillator 9750 MHz subtracted; the Receive screen and RSSI Measurement work the same way). While the LNB is in use the app is receive only; transmitting and the diagnostic test are not possible.")
                 }
                 ManualSection("6. RSSI Measurement", sectionModifier("find", sectionOffsets, scrollState)) {
-                    ManualParagraph("Choose a range around the operating frequency set on the Frequency screen with the ±5/10/20 MHz buttons (±10 MHz when the screen opens), enter a step (200 kHz by default), and tap Start Search to measure Pluto's RSSI across the range. Stop Search stops immediately.")
+                    ManualParagraph("Choose a range around the operating frequency set on the Frequency screen with the ±5/10/20 MHz buttons (±10 MHz when the screen opens), enter a step (200 kHz by default), and tap Start Measurement to measure Pluto's RSSI across the range. Stop Measurement stops immediately.")
                     Image(painter = painterResource(R.drawable.manual_find), contentDescription = "RSSI Measurement screen", modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.Fit)
                     ManualBullet("Smaller values are drawn higher (a smaller AD9361 RSSI means a stronger signal). The white dashed line is the center frequency and the yellow dot is the strongest point of the sweep.")
                     ManualBullet("After each sweep the strongest frequency is updated only if the RSSI varied by 3 dB or more; otherwise the previous result is kept.")
-                    ManualBullet("Search Mode: Repeat (until Stop Search) or Once (stops at the end of the range).")
+                    ManualBullet("Measurement Mode: Repeat (until Stop Measurement) or Once (stops at the end of the range).")
                     ManualBullet("RX gain (AGC/manual) shares the RX Gain screen setting and can be changed while searching; the sweep restarts when it changes.")
                     ManualBullet("With on-device demodulation ON, TX starts together with the search and measurement begins after 1 second; stopping the search also stops TX. It cannot start while receiving, and it stops when you leave the screen.")
                 }
