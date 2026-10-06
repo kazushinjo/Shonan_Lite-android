@@ -83,3 +83,19 @@ foreach(lib gnuradio-runtime gnuradio-blocks gnuradio-fft gnuradio-filter
 endforeach()
 
 target_link_libraries(dvbs2rx_bridge log)
+
+# Langstone V3(SDRトランシーバー)。Shonan_Lite-RasPI5のLang_TRX_Pluto.pyをC++で組み直した
+# フローグラフ(iPad版LangstoneTRxSession.mmと同じ構成)と、Plutoの直接制御(libiio 0.xの関数は
+# libgnuradio-iio.soが公開しているものを使う)。音声はAAudioで扱う。
+add_library(langstone_bridge SHARED langstone_bridge.cpp)
+
+target_include_directories(langstone_bridge PRIVATE ${GRDVBS2RX_STACK}/include)
+
+set_target_properties(langstone_bridge PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
+
+foreach(lib gnuradio-runtime gnuradio-blocks gnuradio-fft gnuradio-filter
+            gnuradio-analog gnuradio-iio gnuradio-pmt volk)
+    target_link_libraries(langstone_bridge prebuilt_${lib})
+endforeach()
+
+target_link_libraries(langstone_bridge aaudio log)

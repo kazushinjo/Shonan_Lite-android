@@ -46,7 +46,7 @@ private val manualEntries = listOf(
     ManualEntry("menu", "2. ホーム画面(メインメニュー)構成", listOf("メニュー", "main menu", "help", "ヘルプ")),
     ManualEntry("tx", "3. 送信(Tx)画面", listOf("送信", "tx", "transmit")),
     ManualEntry("rx", "4. 受信(Rx)画面", listOf("受信", "rx", "receive")),
-    ManualEntry("frequency", "5. 周波数(Frequency)画面", listOf("周波数", "frequency")),
+    ManualEntry("frequency", "5. 周波数(Frequency)画面", listOf("周波数", "frequency", "LNB", "10GHz", "9750", "486.5")),
     ManualEntry("find", "6. RSSI測定画面", listOf("RSSI測定", "相手局検索", "afc", "rssi", "電波強度", "グラフ", "自動周波数")),
     ManualEntry("symbolrate", "7. シンボルレート(Symbol Rate)画面", listOf("シンボルレート", "symbol rate")),
     ManualEntry("fec", "8. 誤り訂正(FEC)画面", listOf("fec", "誤り訂正", "符号化率")),
@@ -161,6 +161,7 @@ fun ManualScreen(@Suppress("UNUSED_PARAMETER") viewModel: AppViewModel, navContr
                     ManualParagraph("運用バンド(1200MHz〜24GHz)を選択すると、日本のアマチュア無線DATVバンドプランに沿った代表周波数が送受信周波数欄(kHz)へ自動反映されます。")
                     ManualBullet("送受信周波数は手動でも変更できます(kHz単位)。")
                     ManualBullet("ここで設定した周波数は、送信/受信開始時にPlutoへ実際に同調されます。")
+                    ManualBullet("「10GHz」を押すと「LNBを使用しますか?」と確認します。「はい」を選ぶと表示周波数は10236.5 MHz、Plutoの受信周波数はLNB局部発振9750 MHzを引いた486.5 MHzになります(受信画面・RSSI測定も同じ)。LNB使用中は受信専用で、送信・機器試験はできません。")
                 }
                 ManualSection("6. RSSI測定画面", sectionModifier("find", sectionOffsets, scrollState)) {
                     ManualParagraph("周波数画面で設定した運用周波数を中心に、「周波数±5/10/20MHz」で範囲を選び(画面を開くと±10MHz)、ステップ(既定200 kHz)を入力して「検索開始」を押すと、PlutoのRSSIを範囲の端から順に測定します。「検索停止」で即座に止まります。")
@@ -239,7 +240,7 @@ private fun EnglishManualScreen(navController: NavHostController) {
         ManualEntry("menu", "2. Home Menu", listOf("menu", "main menu", "help")),
         ManualEntry("tx", "3. Transmit (Tx)", listOf("transmit", "tx")),
         ManualEntry("rx", "4. Receive (Rx)", listOf("receive", "rx")),
-        ManualEntry("frequency", "5. Frequency", listOf("frequency")),
+        ManualEntry("frequency", "5. Frequency", listOf("frequency", "LNB", "10 GHz", "9750", "486.5")),
         ManualEntry("find", "6. RSSI Measurement", listOf("rssi measurement", "find station", "afc", "rssi")),
         ManualEntry("symbolrate", "7. Symbol Rate", listOf("symbol rate")),
         ManualEntry("fec", "8. FEC", listOf("fec", "error correction")),
@@ -334,6 +335,7 @@ private fun EnglishManualScreen(navController: NavHostController) {
                     ManualParagraph("Select an operating band to apply a representative TX/RX frequency based on the Japanese amateur-radio DATV band plan.")
                     ManualBullet("The TX/RX frequency can also be changed manually in kHz.")
                     ManualBullet("The selected frequency is tuned on Pluto when transmission or reception starts.")
+                    ManualBullet("Pressing 10 GHz asks whether to use an LNB. Choosing Yes sets the displayed frequency to 10236.5 MHz and the Pluto receive frequency to 486.5 MHz (the LNB local oscillator 9750 MHz subtracted; the Receive screen and RSSI Measurement work the same way). While the LNB is in use the app is receive only; transmitting and the diagnostic test are not possible.")
                 }
                 ManualSection("6. RSSI Measurement", sectionModifier("find", sectionOffsets, scrollState)) {
                     ManualParagraph("Choose a range around the operating frequency set on the Frequency screen with the ±5/10/20 MHz buttons (±10 MHz when the screen opens), enter a step (200 kHz by default), and tap Start Search to measure Pluto's RSSI across the range. Stop Search stops immediately.")

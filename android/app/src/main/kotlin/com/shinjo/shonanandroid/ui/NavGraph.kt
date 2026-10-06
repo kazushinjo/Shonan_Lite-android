@@ -25,5 +25,6 @@ fun ShonanNavHost(viewModel: AppViewModel) {
         composable("manual") { ManualScreen(viewModel, navController) }
         composable("testequipment") { TestEquipmentScreen(viewModel, navController) }
         composable("settings") { SettingsScreen(viewModel, navController) }
+        composable("langstone") { LangstoneScreen(viewModel, navController) }
     }
 }

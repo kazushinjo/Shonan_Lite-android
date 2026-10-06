@@ -3,6 +3,7 @@ package com.shinjo.shonanandroid.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.navigation.NavHostController
 import com.shinjo.shonanandroid.AppViewModel
+import com.shinjo.shonanandroid.langstone.LangstoneConfig
 import com.shinjo.shonanandroid.net.PlutoDiscoveryClient
 import com.shinjo.shonanandroid.net.PlutoRebootController
 import kotlinx.coroutines.Dispatchers
@@ -158,6 +160,14 @@ fun HomeScreen(viewModel: AppViewModel, navController: NavHostController) {
                 .offset(offsetX.dp, offsetY.dp),
         )
 
+        // Langstoneを開く。Plutoを送受信に使うため、DATVの送受信は止めておく
+        // (Pi5版もShonan_Liteを終了してからLangstoneへ切り替える)。
+        fun openLangstone() {
+            if (viewModel.isTransmitting) viewModel.stopTX()
+            if (viewModel.isReceiving) viewModel.stopRX()
+            navController.navigate("langstone")
+        }
+
         val onMenuClick: (HomeMenuButton) -> Unit = { button ->
             when (button.route) {
                 "pluto_reboot" -> {
@@ -205,6 +215,29 @@ fun HomeScreen(viewModel: AppViewModel, navController: NavHostController) {
                 enabled = !plutoRebootInProgress,
                 onClick = { onMenuClick(button) },
             )
+        }
+
+        // ★Pi5版のホーム画面「Langstone / SDR Transceiver」カードの移植(iPad版と同じ)。背景画像には
+        // カードが無いため、4段目の下の空き(画像座標y=758〜)に既存カードと同じ見た目で描く。
+        LangstoneHomeCard(
+            x = 64f, y = 758f, width = 315f, height = 112f,
+            scale = scale, offsetX = offsetX, offsetY = offsetY,
+            enabled = !plutoRebootInProgress,
+        ) {
+            // 衛星から10GHz受信用バンドで開いたままなら、その前のバンドに戻して開く(Pi5版と同じ)。
+            LangstoneConfig.restorePreviousBand(discoveryContext)
+            openLangstone()
+        }
+
+        // 背景右側の衛星をタップすると、Langstoneを10GHz受信用のバンド(表示10236.5MHz、
+        // Pluto受信486.5MHz、受信専用)で開く(Pi5版の衛星タップの移植)。
+        HomeTapTarget(
+            x = 1395f, y = 415f, width = 175f, height = 130f,
+            scale = scale, offsetX = offsetX, offsetY = offsetY,
+            enabled = !plutoRebootInProgress,
+        ) {
+            LangstoneConfig.selectSatelliteBand(discoveryContext)
+            openLangstone()
         }
 
         homeMenuButtons.forEach { button ->
@@ -301,6 +334,63 @@ fun HomeScreen(viewModel: AppViewModel, navController: NavHostController) {
                     }
                 }
             }
+        }
+    }
+}
+
+/** 背景画像のカード(細い水色の枠・濃紺のグラデーション)に合わせて描くLangstoneのカード。 */
+@Composable
+private fun LangstoneHomeCard(
+    x: Float,
+    y: Float,
+    width: Float,
+    height: Float,
+    scale: Float,
+    offsetX: Float,
+    offsetY: Float,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val shape = androidx.compose.foundation.shape.RoundedCornerShape((14f * scale).dp)
+    androidx.compose.foundation.layout.Row(
+        modifier = Modifier
+            .width((width * scale).dp)
+            .height((height * scale).dp)
+            .offset((offsetX + x * scale).dp, (offsetY + y * scale).dp)
+            .background(
+                androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF000917), Color(0xFF010409))),
+                shape,
+            )
+            .border(maxOf(1.5f * scale, 1f).dp, Color(0xFF70BECE), shape)
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(start = (26f * scale).dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioWavesIcon(color = Color.White, modifier = Modifier.size((48f * scale).dp))
+        Column(modifier = Modifier.padding(start = (22f * scale).dp)) {
+            Text("Langstone", color = Color.White, fontSize = (28f * scale).sp,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Light, maxLines = 1)
+            Text("SDR Transceiver", color = Color(0xFFD9D9D9), fontSize = (17f * scale).sp,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Light, maxLines = 1)
+        }
+    }
+}
+
+/** 電波のアイコン(中央の点と左右の弧。iPad版のSF Symbol「dot.radiowaves.left.and.right」の代わり)。 */
+@Composable
+private fun RadioWavesIcon(color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val c = androidx.compose.ui.geometry.Offset(size.width / 2f, size.height / 2f)
+        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
+            width = size.minDimension * 0.06f, cap = androidx.compose.ui.graphics.StrokeCap.Round,
+        )
+        drawCircle(color, radius = size.minDimension * 0.08f, center = c)
+        for (r in listOf(0.24f, 0.40f)) {
+            val rad = size.minDimension * r
+            val topLeft = androidx.compose.ui.geometry.Offset(c.x - rad, c.y - rad)
+            val arcSize = androidx.compose.ui.geometry.Size(rad * 2, rad * 2)
+            drawArc(color, startAngle = -40f, sweepAngle = 80f, useCenter = false, topLeft = topLeft, size = arcSize, style = stroke)
+            drawArc(color, startAngle = 140f, sweepAngle = 80f, useCenter = false, topLeft = topLeft, size = arcSize, style = stroke)
         }
     }
 }

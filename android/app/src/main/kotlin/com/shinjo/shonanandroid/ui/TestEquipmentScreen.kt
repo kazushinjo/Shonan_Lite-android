@@ -125,9 +125,14 @@ fun TestEquipmentScreen(viewModel: AppViewModel, navController: NavHostControlle
 
                 Spacer(modifier = Modifier.weight(1f))
 
+                // 機器試験は送信を伴うため、LNB(受信専用)使用中は実行しない(iPad版と同じ)。
+                val blockedMessage = viewModel.diagnosticsBlockedMessage
+                if (blockedMessage != null) {
+                    Text(blockedMessage, color = HealthRed, fontSize = 12.sp)
+                }
                 Button(
                     onClick = { viewModel.runDvbs2Diagnostics() },
-                    enabled = !runner.diagRunning && !viewModel.isTransmitting && !viewModel.isReceiving,
+                    enabled = !runner.diagRunning && !viewModel.isTransmitting && !viewModel.isReceiving && blockedMessage == null,
                     colors = ButtonDefaults.buttonColors(containerColor = ActionBlue),
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.fillMaxWidth().height(34.dp),
@@ -147,7 +152,8 @@ fun TestEquipmentScreen(viewModel: AppViewModel, navController: NavHostControlle
                 }
                 Button(
                     onClick = { viewModel.runCameraAudioDiagnostics() },
-                    enabled = !runner.cameraDiagRunning && !runner.diagRunning && !viewModel.isTransmitting && !viewModel.isReceiving,
+                    enabled = !runner.cameraDiagRunning && !runner.diagRunning && !viewModel.isTransmitting && !viewModel.isReceiving &&
+                        blockedMessage == null,
                     colors = ButtonDefaults.buttonColors(containerColor = ActionBlue),
                     shape = RoundedCornerShape(8.dp),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp),

@@ -211,6 +211,9 @@ data class AppSettings(
     // 機器診断用周波数(★運用メモ)
     var useCustomLoFrequency: Boolean = false,
     var customLoFrequencyHz: Long = BandProfile.default.loHz ?: 1_200_000_000L,
+    /** 周波数画面で10GHz帯を選んだときの「LNBを使用する」(Pi5版`use_lnb`・iPad版`useLNB`の移植)。
+     *  ONの間は画面の周波数を10GHz表示のまま扱い、受信時だけLNB局部発振を引いてPlutoへ渡す。 */
+    var useLNB: Boolean = false,
 
     // PA_Power/PTTコントローラ(ESP32+W5500、hardware/W5500_PA_PTT_Control)
     /** 設定画面の「ESP32 W5500を使用する」。OFFならIPアドレスを保持したまま連携しない。 */
@@ -225,6 +228,15 @@ data class AppSettings(
     /** 診断機能が実際に使うLO周波数(Hz)。バンド選択の代表値と手動入力のどちらかを解決する。 */
     val effectiveLoHz: Long
         get() = if (useCustomLoFrequency) customLoFrequencyHz else (selectedBand.loHz ?: customLoFrequencyHz)
+
+    /** LNB使用中(受信専用)か。周波数がLNB局部発振より上のときだけ有効。 */
+    val lnbActive: Boolean
+        get() = useLNB && effectiveLoHz > LNB_LO_HZ
+
+    /** 受信時にPlutoへ設定する周波数(Hz)。LNB使用中は表示周波数からLNB局部発振を引く
+     *  (10236.5MHz→486.5MHz)。 */
+    val rxTuneHz: Long
+        get() = if (lnbActive) effectiveLoHz - LNB_LO_HZ else effectiveLoHz
 
     /** 現行オンデバイス復調器は2Msps入力でネイティブクラッシュするため安全値に制限する。 */
     val effectiveOperationalSymbolRateMsps: Double
@@ -259,5 +271,10 @@ data class AppSettings(
 
     companion object {
         val default = AppSettings()
+
+        /** LNB局部発振(Hz)。Langstoneの10GHz受信と同じ9750MHz。 */
+        const val LNB_LO_HZ = 9_750_000_000L
+        /** LNB使用時の表示周波数(Hz)。Pluto受信は486.5MHzになる。 */
+        const val LNB_DISPLAY_HZ = 10_236_500_000L
     }
 }

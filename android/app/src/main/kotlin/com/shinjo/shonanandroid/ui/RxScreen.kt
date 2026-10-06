@@ -109,7 +109,11 @@ fun RxScreen(viewModel: AppViewModel, navController: NavHostController) {
                     }
 
                     StatusFieldRow(
-                        settings.t("周波数", "Frequency") to "${settings.effectiveLoHz / 1_000} kHz",
+                        // LNB使用中はPlutoへ実際に設定する受信周波数も併記する(Pi5版・iPad版と同じ)。
+                        settings.t("周波数", "Frequency") to (
+                            "${settings.effectiveLoHz / 1_000} kHz" +
+                                if (settings.lnbActive) " (LNB → ${settings.rxTuneHz / 1_000} kHz)" else ""
+                            ),
                         settings.t("シンボルレート", "Symbol rate") to "%.1f Msym/s".format(settings.symbolRateMsps),
                     )
                     StatusFieldRow(

@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.shinjo.shonanandroid.AppViewModel
+import com.shinjo.shonanandroid.core.AppSettings
 import com.shinjo.shonanandroid.core.BandProfile
 
 private val CardBackground = Color(0xFF191D1F)
@@ -41,6 +44,12 @@ private val KeyBorder = Color(0xFFC7D0D6)
 private val OkKeyBackground = Color(0xFF0797BD)
 private val ChipBackground = Color(0xFF303538)
 private val AccentBlue = Color(0xFF1677FF)
+
+/** Hz→MHzの表示(末尾の0は省く、Pi5版の`:g`表記と同じ)。 */
+private fun formatMegahertz(hz: Long): String {
+    val mhz = hz / 1_000_000.0
+    return if (mhz % 1.0 == 0.0) "${mhz.toLong()}" else mhz.toString().trimEnd('0').trimEnd('.')
+}
 
 private fun bandMegahertzLabel(band: BandProfile): String {
     val hz = band.loHz ?: return ""
@@ -59,10 +68,48 @@ fun FrequencySettingsScreen(viewModel: AppViewModel, navController: NavHostContr
     val settings = viewModel.settings
     var pendingText by remember(settings.effectiveLoHz) { mutableStateOf((settings.effectiveLoHz / 1_000).toString()) }
 
+    // 10GHz帯を押したときの「LNBを使用しますか?」確認(Pi5版の周波数画面から移植、iPad版と同じ)。
+    var showLnbPrompt by remember { mutableStateOf(false) }
+
     fun selectBand(band: BandProfile) {
         val loHz = band.loHz ?: return
-        viewModel.updateSettings { s -> s.copy(selectedBand = band, useCustomLoFrequency = false, customLoFrequencyHz = loHz) }
+        viewModel.updateSettings { s ->
+            s.copy(selectedBand = band, useCustomLoFrequency = false, customLoFrequencyHz = loHz, useLNB = false)
+        }
         pendingText = (loHz / 1_000).toString()
+        // 選択中の10GHz帯を押し直しても選び直せるようにする。
+        if (band == BandProfile.BAND_10000) showLnbPrompt = true
+    }
+
+    if (showLnbPrompt) {
+        val plutoMhz = formatMegahertz(AppSettings.LNB_DISPLAY_HZ - AppSettings.LNB_LO_HZ)
+        val lnbLoMhz = formatMegahertz(AppSettings.LNB_LO_HZ)
+        val displayGhz = (AppSettings.LNB_DISPLAY_HZ / 1_000_000_000.0).toString().trimEnd('0').trimEnd('.')
+        val bandMhz = formatMegahertz(BandProfile.BAND_10000.loHz ?: 0L)
+        AlertDialog(
+            onDismissRequest = { showLnbPrompt = false },
+            title = { Text(settings.t("LNBの使用", "Use LNB")) },
+            text = {
+                Text(
+                    settings.t(
+                        "LNBを使用しますか?\n\n「はい」: 表示周波数 $displayGhz GHz、Pluto受信 $plutoMhz MHz(LNB局部発振 $lnbLoMhz MHz)。受信専用で送信はできません。\n「いいえ」: $bandMhz MHz(LNBなし)",
+                        "Use an LNB?\n\nYes: displayed frequency $displayGhz GHz, Pluto RX $plutoMhz MHz (LNB local oscillator $lnbLoMhz MHz). Receive only; transmitting is not possible.\nNo: $bandMhz MHz (no LNB)",
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showLnbPrompt = false
+                    viewModel.updateSettings { s ->
+                        s.copy(useLNB = true, useCustomLoFrequency = true, customLoFrequencyHz = AppSettings.LNB_DISPLAY_HZ)
+                    }
+                    pendingText = (AppSettings.LNB_DISPLAY_HZ / 1_000).toString()
+                }) { Text(settings.t("はい", "Yes")) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLnbPrompt = false }) { Text(settings.t("いいえ", "No")) }
+            },
+        )
     }
 
     fun onKey(key: String) {
@@ -103,7 +150,8 @@ fun FrequencySettingsScreen(viewModel: AppViewModel, navController: NavHostContr
                     fontWeight = FontWeight.Bold,
                 )
                 BandProfile.entries.filterNot { it.isLoopback }.forEach { band ->
-                    val selected = !settings.useCustomLoFrequency && settings.selectedBand == band
+                    val lnbSelected = band == BandProfile.BAND_10000 && settings.selectedBand == band && settings.lnbActive
+                    val selected = (!settings.useCustomLoFrequency && settings.selectedBand == band) || lnbSelected
                     Button(
                         onClick = { selectBand(band) },
                         colors = ButtonDefaults.buttonColors(
@@ -123,7 +171,7 @@ fun FrequencySettingsScreen(viewModel: AppViewModel, navController: NavHostContr
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             Text(
-                                bandMegahertzLabel(band),
+                                if (lnbSelected) "${formatMegahertz(settings.effectiveLoHz)} (LNB)" else bandMegahertzLabel(band),
                                 fontSize = 12.sp,
                                 textAlign = TextAlign.Start,
                                 modifier = Modifier.fillMaxWidth(),
@@ -209,6 +257,16 @@ fun FrequencySettingsScreen(viewModel: AppViewModel, navController: NavHostContr
                     color = CaptionColor,
                     fontSize = 13.sp,
                 )
+                if (settings.lnbActive) {
+                    Text(
+                        settings.t(
+                            "LNB使用(受信専用): Pluto受信 ${settings.rxTuneHz / 1_000} kHz",
+                            "LNB in use (RX only): Pluto RX ${settings.rxTuneHz / 1_000} kHz",
+                        ),
+                        color = CaptionColor,
+                        fontSize = 13.sp,
+                    )
+                }
             }
         }
     }

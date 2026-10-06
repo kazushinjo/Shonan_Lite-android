@@ -101,7 +101,8 @@ class RxController(private val context: Context) {
                 constellation = settings.modulationScheme.label,
                 codeRate = settings.fecRate.label,
                 sampleRateHz = (settings.effectiveOperationalSymbolRateMsps * 2_000_000.0).toLong(),
-                loHz = settings.effectiveLoHz,
+                // LNB使用中は表示周波数からLNB局部発振を引いた周波数で受信する。
+                loHz = settings.rxTuneHz,
                 gainDb = settings.rxGainDb.toDouble(),
                 agcEnabled = settings.rxAgcEnabled,
             )

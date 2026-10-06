@@ -36,6 +36,10 @@ data class RssiMeasurement(val frequencyHz: Long, val rssiDb: Double)
 /** libiio IIODの既定TCPポート。 */
 private const val IIOD_PORT = 30431
 
+/** LNB(受信専用)使用中に送信・機器試験を止めたときの説明(Pi5版・iPad版と同じ文言)。 */
+const val LNB_TX_BLOCKED_JA = "LNB使用中は送信できません(受信専用)。周波数画面でLNBをOFFにしてください。"
+const val LNB_TX_BLOCKED_EN = "Cannot transmit while the LNB is in use (receive only). Turn the LNB off on the Frequency screen."
+
 /** アプリ起動からPA_Power/PTTコントローラの12V電源をONにするまでの待ち(Pi5版と同じ5秒)。 */
 private const val PTT_CONTROLLER_POWER_ON_DELAY_MS = 5_000L
 
@@ -203,6 +207,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             txError = "受信中は送信を開始できません。受信を停止してください。"
             return
         }
+        // LNB(10GHz受信用)は受信専用のため、LNB使用中は送信しない(Pi5版・iPad版と同じ)。
+        if (settings.lnbActive) {
+            txError = settings.t(LNB_TX_BLOCKED_JA, LNB_TX_BLOCKED_EN)
+            return
+        }
         txError = null
         isPreparingTx = true
         viewModelScope.launch {
@@ -269,7 +278,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      */
     private suspend fun tunePluto(isTx: Boolean): Boolean {
         val plutoIp = settings.txDestinationIP
-        val frequencyHz = settings.effectiveLoHz
+        // LNB使用中は表示周波数からLNB局部発振を引いた値を受信周波数としてPlutoへ設定する。
+        val frequencyHz = if (isTx) settings.effectiveLoHz else settings.rxTuneHz
         val ok = withContext(Dispatchers.IO) {
             val reachable = isPlutoReachable(plutoIp)
             FileLogger.log("TUNE", "isPlutoReachable(IIOD:$IIOD_PORT) ip=$plutoIp result=$reachable")
@@ -334,6 +344,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         val centerHz = settings.effectiveLoHz
+        // LNB使用中は10GHz表示のまま走査し、Plutoへは局部発振を引いた周波数を設定する(iPad版と同じ)。
+        val tuneOffsetHz = if (settings.lnbActive) AppSettings.LNB_LO_HZ else 0L
         val plutoIp = settings.txDestinationIP
         rssiIsScanning = true
         rssiStatus = settings.t("検索中...", "Searching...")
@@ -411,7 +423,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         continue
                     }
                     val current = opened!!
-                    val rssi = withContext(Dispatchers.IO) { current.measure(frequencyHz) }
+                    val rssi = withContext(Dispatchers.IO) { current.measure(frequencyHz - tuneOffsetHz) }
                     if (!rssi.isFinite()) {
                         // ★Wi-Fiの再接続等でPlutoとの接続が切れると以降の測定がすべて失敗する。
                         // 接続し直して同じ周波数を測り直し、続けて失敗したら検索を中止して知らせる。
@@ -445,7 +457,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             } finally {
                 // キャンセル後も後片付け(Plutoを元の中心周波数へ戻す・クローズ)は必ず完了させる。
                 withContext(Dispatchers.IO + NonCancellable) {
-                    session?.let { if (it.isOpen) it.measure(centerHz) }
+                    session?.let { if (it.isOpen) it.measure(centerHz - tuneOffsetHz) }
                     session?.close()
                 }
                 commitSweep()
@@ -487,8 +499,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     // 等の実機構成があれば)機器自体の健全性を診断できる。
     val dvbs2TestRunner = Dvbs2TestRunner(viewModelScope, getApplication(), ProcessLifecycleOwner.get())
 
+    /** 機器試験は送信を伴うため、LNB(受信専用)使用中は実行しない。実行できないときの説明。 */
+    val diagnosticsBlockedMessage: String?
+        get() = if (settings.lnbActive) settings.t(LNB_TX_BLOCKED_JA, LNB_TX_BLOCKED_EN) else null
+
     fun runDvbs2Diagnostics() {
-        if (dvbs2TestRunner.diagRunning || isTransmitting || isReceiving) return
+        if (dvbs2TestRunner.diagRunning || isTransmitting || isReceiving || settings.lnbActive) return
         dvbs2TestRunner.runDiag(
             context = getApplication(),
             plutoIp = settings.txDestinationIP,
@@ -504,7 +520,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     // カメラ映像+マイク音声を実際にキャプチャ→H.264/AACエンコード→TS多重化という
     // 実運用と同じ経路でPlutoへ送出できるかを確認する -- iOS版`runCameraAudioDiag()`に対応。
     fun runCameraAudioDiagnostics() {
-        if (dvbs2TestRunner.cameraDiagRunning || isTransmitting || isReceiving) return
+        if (dvbs2TestRunner.cameraDiagRunning || isTransmitting || isReceiving || settings.lnbActive) return
         dvbs2TestRunner.runCameraAudioDiag(
             context = getApplication(),
             plutoIp = settings.txDestinationIP,
