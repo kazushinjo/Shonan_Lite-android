@@ -147,7 +147,7 @@ fun LangstoneScreen(viewModel: AppViewModel, navController: NavHostController) {
                 SpectrumView(controller.display, Modifier.fillMaxWidth().weight(1f)) { controller.spectrumTapped() }
                 LevelRow(controller, settings::t)
                 PopupRow(controller)
-                FunctionButtons(controller, settings::t) { exit() }
+                FunctionButtons(controller, settings::t, onExit = { exit() }, onQuit = { showQuitConfirmation = true })
             }
             SidePanel(
                 controller, settings::t, isExiting, Modifier.width(240.dp).fillMaxHeight(),
@@ -315,12 +315,16 @@ private fun PopupRow(c: LangstoneController) {
 // MARK: - 下段の7ボタン
 
 @Composable
-private fun FunctionButtons(c: LangstoneController, t: (String, String) -> String, onExit: () -> Unit) {
+private fun FunctionButtons(c: LangstoneController, t: (String, String) -> String, onExit: () -> Unit, onQuit: () -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         for (i in 0 until 7) {
             val (title, active, color) = functionButtonSpec(c, i, t)
             LsButton(title, active = active, color = color, modifier = Modifier.weight(1f), enabled = title.isNotEmpty()) {
-                if (c.inputMode == InputMode.SETTINGS && i == 5) onExit() else c.functionButton(i)
+                when {
+                    c.inputMode == InputMode.SETTINGS && i == 5 -> onQuit()
+                    c.inputMode == InputMode.SETTINGS && i == 6 -> onExit()
+                    else -> c.functionButton(i)
+                }
             }
         }
     }
@@ -333,7 +337,8 @@ private fun functionButtonSpec(c: LangstoneController, i: Int, t: (String, Strin
             2 -> Triple("NEXT", false, null)
             3 -> Triple("PREV", false, null)
             4 -> Triple("RESTART", false, btnWarn)
-            5 -> Triple(t("ホームへ", "Home"), false, btnWarn)
+            5 -> Triple(t("プログラム終了", "Quit"), false, btnWarn)
+            6 -> Triple(t("ホームへ", "Home"), false, btnWarn)
             else -> Triple("", false, null)
         }
     }
