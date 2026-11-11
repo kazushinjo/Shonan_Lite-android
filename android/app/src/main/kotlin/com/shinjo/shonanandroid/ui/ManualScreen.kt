@@ -120,7 +120,7 @@ fun ManualScreen(@Suppress("UNUSED_PARAMETER") viewModel: AppViewModel, navContr
                 }
                 ManualSection("1. 概要", sectionModifier("overview", sectionOffsets, scrollState)) {
                     ManualParagraph("Shonan for Androidは、Plutoを介したDVB-S2 DATVの送受信をタブレットから行うアプリです。")
-                    ManualBullet("送信(Tx): 映像と音声をH.264/AACでエンコードし、MPEG-TSをUDPでPlutoの8282番ポートへ送出します。")
+                    ManualBullet("送信(Tx): 映像と音声をH.264(またはH.265)/AACでエンコードし、MPEG-TSをUDPでPlutoの8282番ポートへ送出します。")
                     ManualBullet("受信(Rx): オンデバイス復調時はPlutoのRFをAndroidで復調し、映像・音声を表示します。")
                     ManualBullet("送受信開始時にPlutoの変調設定を自動反映し、UDP受信経路を起動します。")
                 }
@@ -139,10 +139,11 @@ fun ManualScreen(@Suppress("UNUSED_PARAMETER") viewModel: AppViewModel, navContr
                 }
                 ManualSection("3. 送信(Tx)画面", sectionModifier("tx", sectionOffsets, scrollState)) {
                     Image(painter = painterResource(R.drawable.manual_tx), contentDescription = "送信画面", modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.Fit)
-                    ManualParagraph("送信開始すると、選択した映像ソースをH.264、音声をAACでエンコードし、MPEG-TSとしてPlutoのUDP 8282番ポートへ送出します。RTMPは使用しません。")
+                    ManualParagraph("送信開始すると、選択した映像ソースをH.264(またはH.265)、音声をAACでエンコードし、MPEG-TSとしてPlutoのUDP 8282番ポートへ送出します。RTMPは使用しません。")
                     ManualBullet("送信開始時にPlutoへ周波数・変調・FEC・シンボルレート・ロールオフを反映します。")
                     ManualBullet("送信を停止するとPlutoへのUDP送信も停止します。実運用では送信中に受信を同時開始しません。")
                     ManualBullet("送信画面の音声設定で、マイク音声を送信するか選択できます。")
+                    ManualBullet("映像ソース画面の「H.265(HEVC)で送信」をONにすると、映像をH.265で送信します(同じビットレートで画質が上がります。受信側もH.265に対応している必要があります。端末にH.265エンコーダが無い場合は選べず、H.264で送信します)。受信はH.264・H.265を自動で判別します。")
                     ManualBullet("画面をタップすると操作パネルが表示され、マイク入力レベルをバーでリアルタイム表示します。")
                     ManualBullet("送信画面の「送信音量」スライダーでマイク音声の大きさを0〜100%で調整できます(初期値80%で入力そのまま、100%で2倍、送信中も即時反映)。")
                 }
