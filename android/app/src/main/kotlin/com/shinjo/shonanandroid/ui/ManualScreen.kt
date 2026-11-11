@@ -184,7 +184,7 @@ fun ManualScreen(@Suppress("UNUSED_PARAMETER") viewModel: AppViewModel, navContr
                 }
                 ManualSection("9. 変調(Modulation)画面", sectionModifier("modulation", sectionOffsets, scrollState)) {
                     Image(painter = painterResource(R.drawable.manual_modulation), contentDescription = "変調方式画面", modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.Fit)
-                    ManualParagraph("変調方式(QPSK/8PSK)を設定します。")
+                    ManualParagraph("変調方式(QPSK/8PSK/16APSK/32APSK)を設定します。誤り訂正(FEC)はDVB-S2規格で変調方式ごとに定められた値(QPSK: 1/4〜9/10、8PSK: 3/5〜9/10、16APSK: 2/3〜9/10、32APSK: 3/4〜9/10)から選びます(DVB-S2の全28組み合わせ)。変調方式を変えたとき、今のFECがその方式に無い場合は最も誤りに強い値に切り替わります。16APSK・32APSKは受信側に高いC/Nが必要です。")
                 }
                 ManualSection("10. 映像ソース(Video Source)画面", sectionModifier("videosource", sectionOffsets, scrollState)) {
                     Image(painter = painterResource(R.drawable.manual_videosource), contentDescription = "映像ソース画面", modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.Fit)
@@ -357,7 +357,7 @@ private fun EnglishManualScreen(navController: NavHostController) {
                 }
                 ManualSection("9. Modulation", sectionModifier("modulation", sectionOffsets, scrollState)) {
                     Image(painter = painterResource(R.drawable.manual_modulation), contentDescription = "Modulation screen", modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.Fit)
-                    ManualParagraph("Configure the modulation scheme: QPSK or 8PSK.")
+                    ManualParagraph("Configure the modulation scheme: QPSK, 8PSK, 16APSK or 32APSK. FEC is chosen from the rates DVB-S2 defines for the modulation (QPSK: 1/4-9/10; 8PSK: 3/5-9/10; 16APSK: 2/3-9/10; 32APSK: 3/4-9/10) (all 28 DVB-S2 combinations). When the current FEC does not exist for a newly selected modulation, it switches to the most robust rate. 16APSK and 32APSK need a high C/N at the receiver.")
                 }
                 ManualSection("10. Video Source", sectionModifier("videosource", sectionOffsets, scrollState)) {
                     Image(painter = painterResource(R.drawable.manual_videosource), contentDescription = "Video Source screen", modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.Fit)

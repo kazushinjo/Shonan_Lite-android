@@ -100,7 +100,7 @@ object SettingsStore {
             useLNB = prefs.getBoolean(Keys.USE_LNB, default.useLNB),
             pttControllerEnabled = prefs.getBoolean(Keys.PTT_CONTROLLER_ENABLED, default.pttControllerEnabled),
             pttControllerHost = prefs.getString(Keys.PTT_CONTROLLER_HOST, null) ?: default.pttControllerHost,
-        )
+        ).let { it.copy(fecRate = it.modulationScheme.coerceFec(it.fecRate)) } // 変調方式に無いFECは補正
     }
 
     fun save(context: Context, settings: AppSettings) {
