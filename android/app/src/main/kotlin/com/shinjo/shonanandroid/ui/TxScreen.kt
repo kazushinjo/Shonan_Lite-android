@@ -51,8 +51,8 @@ private val IdleGray = Color(0xFF5A5A5A)
 
 /**
  * 送信画面 -- Shonan_Lite-pi5(`pi5/gui/screens/tx.py`)と同じカードレイアウトに統一。
- * 左に映像プレビュー、右に固定幅ダークステータスカード(周波数/シンボルレート/変調方式/FECの
- * 2x2グリッド、区切り線、統計2x2グリッド)、下段にボタン行を並べる([[shonan-lite-ipad-tx-rx-pi5-design]]と同様の移植)。
+ * 左に固定幅ダークステータスカード(周波数/シンボルレート/変調方式/FECの
+ * 2x2グリッド、区切り線、統計2x2グリッド)、右に映像プレビュー、下段にボタン行を並べる([[shonan-lite-ipad-tx-rx-pi5-design]]と同様の移植)。
  */
 @Composable
 fun TxScreen(viewModel: AppViewModel, navController: NavHostController) {
@@ -84,27 +84,6 @@ fun TxScreen(viewModel: AppViewModel, navController: NavHostController) {
             modifier = Modifier.weight(1f).fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .background(Color.Black, RoundedCornerShape(10.dp)),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (settings.usePhotoSource) {
-                    PhotoPreview(
-                        uri = settings.selectedPhotoUri,
-                        overlay = OverlaySpec.from(settings),
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                } else if (settings.useColorBarSource) {
-                    ColorBarPreview(modifier = Modifier.fillMaxSize())
-                } else {
-                    CameraPreviewView(preview = viewModel.activeTxPreview, modifier = Modifier.fillMaxSize())
-                    OverlayPreview(OverlaySpec.from(settings), modifier = Modifier.fillMaxSize())
-                }
-            }
-
             Column(
                 modifier = Modifier
                     .width(270.dp)
@@ -192,6 +171,27 @@ fun TxScreen(viewModel: AppViewModel, navController: NavHostController) {
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
+            }
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .background(Color.Black, RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (settings.usePhotoSource) {
+                    PhotoPreview(
+                        uri = settings.selectedPhotoUri,
+                        overlay = OverlaySpec.from(settings),
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else if (settings.useColorBarSource) {
+                    ColorBarPreview(modifier = Modifier.fillMaxSize())
+                } else {
+                    CameraPreviewView(preview = viewModel.activeTxPreview, modifier = Modifier.fillMaxSize())
+                    OverlayPreview(OverlaySpec.from(settings), modifier = Modifier.fillMaxSize())
+                }
             }
         }
 
